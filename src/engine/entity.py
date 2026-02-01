@@ -15,9 +15,11 @@ class BaseEntity(BaseModel):
     asset: str  # defines a name to map with the asset visually
     position: tuple[float, float]
     traits: list[BaseTrait] = Field(default_factory=list)
-    # TODO refactor this. Let's put all those private methods into the traits.
-    # Othreweise every new trait that needs some specific state will need to update
-    # the entities..e
+    # TODO refactor this. Should we keep those methods to set movement 
+    # and action? I am starting to thing we should not! There are some
+    # rules we still need to enforce, such as not having multiple actions
+    # having at the same time, moving and acting at the same time is allowed 
+    # (unless outherwise specificied)
 
     @property
     def active_action_trait(self):
