@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from .tile import TerrainType, Tile
 
+
 class TerrainMap(BaseModel):
     width: int
     height: int
