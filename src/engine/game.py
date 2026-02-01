@@ -1,8 +1,7 @@
 from abc import abstractmethod
 
 from engine.entity import EntityMap
-from engine.models.events import BaseCommand, BaseEvent, EventProcessor
-from engine.services.events import CommandProcessor
+from engine.cqrs import BaseCommand, BaseEvent, EventProcessor, CommandProcessor
 from engine.system import System
 from engine.terrain import TerrainMap
 

@@ -1,11 +1,18 @@
 from abc import abstractmethod
 from enum import Enum
 from pydantic import BaseModel, Field
-from engine.services.events import BaseEvent
+from engine.cqrs import BaseEvent
 
 
 class BaseTrait(BaseModel):
     pass
+
+
+class MovableTrait(BaseTrait):
+    """
+    Traits that allow an entity to move to a destination.
+    """
+    speed: float = 1.0
 
 
 # Defines traits where entities can act on each other
@@ -19,6 +26,7 @@ class ActorTrait(BaseTrait):
     Traits that allow an entity to initiate actions.
     Example: CanChop, CanMine, CanHeal.
     """
+    range: float = 1.5
     can_act_on: list[InteractionVerb] = Field(default_factory=list)
 
     @abstractmethod
