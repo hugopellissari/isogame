@@ -29,9 +29,7 @@ class ChopHandler(CommandHandler):
         actor = game.entity_map.get(command.actor_id)
         target = game.entity_map.get(command.target_id)
         if actor and target:
-            actor.set_action(MyVerbs.CHOP, target.id)
-            # Set destination to target position to trigger MovementSystem
-            actor.destination = target.position
+            actor.set_action(MyVerbs.CHOP, target.id, target.position)
 
 
 class DamageHandler(EventHandler):
