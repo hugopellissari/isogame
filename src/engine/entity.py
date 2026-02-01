@@ -14,6 +14,9 @@ class BaseEntity(BaseModel):
     asset: str  # defines a name to map with the asset visually
     position: tuple[float, float]
     traits: list[BaseTrait] = Field(default_factory=list)
+    # TODO refactor this. Let's put all those private methods into the traits.
+    # Othreweise every new trait that needs some specific state will need to update
+    # the entities..
     _destination: tuple[float, float] | None = None
     _active_action_trait: ActorTrait | None = None
     _action_target_id: str | None = None
