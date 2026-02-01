@@ -1,73 +1,169 @@
-from ursina import Ursina, camera, Vec3, window, time, Entity, color
-from game.world.world import World
-from game.world.terrain.tile import TerrainType
-from graphics.scene import SceneManager 
 
-# CONFIGURATION
-MAP_SIZE = 10 
+import math
+from ursina import Ursina, EditorCamera, time, held_keys
 
-# 1. INITIALIZE CORE OBJECTS AT GLOBAL SCOPE
-# This allows the update() function to "see" them.
-app = Ursina()
-world = World.generate(width=MAP_SIZE, height=MAP_SIZE)
-scene = SceneManager()
+# Engine Imports
+from engine.game import Game
+from engine.entity import BaseEntity, EntityMap
+from engine.system import System, MovementSystem, InteractionSystem
+from engine.terrain import TerrainGenerationParams, TerrainType, Tile, TerrainMap
+from engine.trait import MovableTrait
+from engine.cqrs import BaseCommand, BaseEvent
 
-def configure_app():
-    window.title = "My Engine"
-    window.borderless = False 
+# Graphics Imports
+from graphics.asset import AssetModel
+from graphics.renderer import UrsinaRenderer
+from graphics.mapper import SceneMapper, VisualProxy
+
+# --- 1. CONCRETE ENGINE IMPLEMENTATIONS ---
+
+class MyTerrainType(TerrainType):
+    GRASS = "grass"
+
+class BasicTerrain(TerrainMap):
+    @classmethod
+    def generate(cls, width: int, height: int, params: TerrainGenerationParams) -> "BasicTerrain":
+        tiles = [[Tile(terrain=MyTerrainType.GRASS) for _ in range(height)] for _ in range(width)]
+        return cls(width=width, height=height, tiles=tiles)
+
+# --- 2. CQRS: COMMANDS, EVENTS, AND HANDLERS ---
+
+class MoveCommand(BaseCommand):
+    entity_id: str
+    target_pos: tuple[float, float]
+
+class EntityCollisionEvent(BaseEvent):
+    source_id: str
+    target_id: str
+
+def handle_move_command(game: Game, command: MoveCommand):
+    entity = game.entity_map.get(command.entity_id)
+    if entity:
+        entity.move_to(command.target_pos)
+
+def handle_collision_event(game: Game, event: EntityCollisionEvent):
+    """Instead of killing, we push both entities away from each other."""
+    source = game.entity_map.get(event.source_id)
+    target = game.entity_map.get(event.target_id)
     
-    # 1. Calculate the dynamic center
-    # If MAP_SIZE is 10, center is 5. If 100, center is 50.
-    center_coord = MAP_SIZE / 2
-    # Camera Setup
-    camera.orthographic = True
-    # 2. Dynamic FOV (Optional)
-    # This keeps the whole map in view even if you change size
-    camera.fov = MAP_SIZE * 1.2 
-    camera.clip_plane_far = 2000 
-    # 3. Position the camera at the center of the grid
-    # We set Y to 0 because our terrain is on the XZ plane
-    camera.position = Vec3(center_coord, 0, center_coord)
-    # 4. Apply Isometric Rotation
-    camera.rotation = Vec3(35.264, 45, 0)
-    # 5. Pull the camera back along its local "forward" vector 
-    # so it doesn't clip through the floor
-    camera.position -= camera.forward * 100
+    if not source or not target:
+        return
 
-def update():
-    """Ursina automatically looks for this function in the global scope."""
-    # This print will now appear in your console every frame
-    # print(f"Ticking world at {1/time.dt:.1f} FPS") 
+    # 1. Calculate the Vector between them
+    dx = source.position[0] - target.position[0]
+    dy = source.position[1] - target.position[1]
+    distance = math.sqrt(dx**2 + dy**2)
     
-    # A. Logic Systems (Update Data)
-    world.tick(time.dt)
+    if distance == 0: return # Prevent division by zero
 
-    # B. Graphics Sync
-    scene.sync(
-        world_events=world.events, 
-        dynamic_entities=world.entity_map.units
+    # 2. Normalize the vector (Direction only)
+    nx = dx / distance
+    ny = dy / distance
+
+    # 3. Apply a 'Bounce' (Push them apart)
+    # We move them just enough to stop overlapping
+    push_strength = 0.2
+    
+    # Source (Jack) moves away from Target (Tree)
+    source.position = (
+        source.position[0] + nx * push_strength,
+        source.position[1] + ny * push_strength
+    )
+    
+    # Target (Tree) moves away from Source (Jack)
+    # Note: Trees are usually heavy, so maybe it moves less?
+    target.position = (
+        target.position[0] - nx * (push_strength * 0.5), 
+        target.position[1] - ny * (push_strength * 0.5)
     )
 
-    # C. Cleanup Events
-    world.events.clear()
+    # 4. Stop their current movement (Reset targets)
+    source.move_to(source.position)
+    target.move_to(target.position)
 
-def main():
-    configure_app()
+# --- 3. THE COLLISION SYSTEM ---
 
-    # 1. GENERATE TERRAIN
-    print("Building Terrain...")
-    for x in range(world.terrain_map.width):
-        for z in range(world.terrain_map.height):
-             tile = world.terrain_map.tile_at(x, z)
-             # Passing parent=scene or specific logic here if needed
-             scene.add_tile(x, z, tile.terrain == TerrainType.water)
-    
-    # 2. SPAWN ENTITIES
-    print("Spawning Entities...")
-    scene.init_world(world.entity_map)
-    
-    # 3. START ENGINE
-    app.run()
+class CollisionSystem(System):
+    """Purely detects proximity and informs the engine via Events."""
+    def update(self, game: Game, dt: float):
+        # 1. Find the Jack
+        jack = next((e for e in game.entity_map.entities.values() if e.asset == "lumberjack"), None)
+        if not jack: return
+
+        # 2. Check proximity to trees
+        for eid, entity in game.entity_map.entities.items():
+            if entity.asset == "tree":
+                dist = math.sqrt(
+                    (jack.position[0] - entity.position[0])**2 + 
+                    (jack.position[1] - entity.position[1])**2
+                )
+                
+                # If close enough, enqueue an event
+                if dist < 0.7:
+                    game.enqueue_event(EntityCollisionEvent(source_id=jack.id, target_id=eid))
+
+# --- 4. THE CONCRETE GAME ---
+
+class LumberjackGame(Game):
+    @classmethod
+    def setup(cls, width: int, height: int) -> "LumberjackGame":
+        params = TerrainGenerationParams()
+        terrain = BasicTerrain.generate(width, height, params)
+        entities = EntityMap()
+        
+        instance = cls(terrain_map=terrain, entity_map=entities)
+        
+        # Register Handlers
+        instance.command_processor.register_handler(MoveCommand, handle_move_command)
+        instance.event_processor.register_handler(EntityCollisionEvent, handle_collision_event)
+        
+        # Add Systems
+        instance.systems.append(MovementSystem())
+        instance.systems.append(CollisionSystem()) # Logic for proximity
+        instance.systems.append(InteractionSystem())
+        
+        return instance
+
+# --- 5. EXECUTION ---
 
 if __name__ == "__main__":
-    main()
+    app = Ursina()
+
+    # Asset Library: Use distinct scales/colors to see the difference
+    asset_library = {
+        "grass": AssetModel(asset_id="grass", model="quad", texture="white_cube", is_static=True, layer=0),
+        "lumberjack": AssetModel(asset_id="lumberjack", model="cube", texture="white_cube", scale=(0.5, 1, 0.5), layer=1),
+        "tree": AssetModel(asset_id="tree", model="cube", texture="white_cube", scale=(0.8, 3, 0.8), layer=1)
+    }
+
+    game_instance = LumberjackGame.setup(width=10, height=10)
+
+    # Add Entities
+    jack = BaseEntity(position=(2.0, 2.0), asset="lumberjack", traits=[MovableTrait(speed=5.0)])
+    game_instance.entity_map.add(jack)
+    
+    # Scatter some trees
+    game_instance.entity_map.add(BaseEntity(position=(5, 5), asset="tree"))
+    game_instance.entity_map.add(BaseEntity(position=(8, 2), asset="tree"))
+
+    mapper = SceneMapper(asset_library)
+    renderer = UrsinaRenderer()
+
+    EditorCamera()
+
+    def update():
+        # Input -> Commands
+        dx = held_keys['right arrow'] - held_keys['left arrow']
+        dy = held_keys['up arrow'] - held_keys['down arrow']
+        if dx != 0 or dy != 0:
+            target = (jack.position[0] + dx, jack.position[1] + dy)
+            game_instance.enqueue_command(MoveCommand(entity_id=jack.id, target_pos=target))
+
+        # Simulation
+        game_instance.tick(time.dt)
+        
+        # Bridge & Render
+        proxies = mapper.map_to_proxies(game_instance)
+        renderer.render(proxies)
+
+    app.run()
