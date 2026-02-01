@@ -8,6 +8,11 @@ class BaseEvent(BaseModel):
     pass
 
 
+# TODO move this elsewhere
+class EntityArrivedEvent(BaseEvent):
+    entity_id: str
+
+
 class BaseCommand(BaseModel):
     """
     A request to change the game state or initiate an action.
