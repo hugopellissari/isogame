@@ -78,25 +78,30 @@ class World(BaseModel):
 
 def spawn_units(world: World, density: float = 0.005) -> None:
     """
-    Procedurally spawn units (Lumberjacks) on valid land tiles.
-    Density is much lower than trees because units are rare.
+    Procedurally spawn units on valid land tiles, ensuring at least one exists.
     """
+    spawned_count = 0
+    land_tiles = [] # Keep track of valid spots just in case
+
+    # 1. Procedural Spawn Pass
     for x in range(world.terrain_map.width):
         for z in range(world.terrain_map.height):
             tile = world.terrain_map.tile_at(x, z)
             
-            # Don't spawn in water
-            if tile.terrain != TerrainType.land:
-                continue
+            if tile.terrain == TerrainType.land:
+                land_tiles.append((x, z))
+                
+                if random.random() < density:
+                    lumberjack = Lumberjack(position=(x + 0.5, z + 0.5))
+                    world.entity_map.add(lumberjack)
+                    spawned_count += 1
 
-            # Random chance to spawn
-            if random.random() < density:
-                # Add a single unit at the center of the tile
-                # (You can add random offset if you want, but center is cleaner for units)
-                lumberjack = Lumberjack(
-                    position=(x + 0.5, z + 0.5) 
-                )
-                world.entity_map.add(lumberjack)
+    # 2. Safety Net: If the random dice were mean, force a spawn
+    if spawned_count == 0 and land_tiles:
+        x, z = random.choice(land_tiles)
+        lumberjack = Lumberjack(position=(x + 0.5, z + 0.5))
+        world.entity_map.add(lumberjack)
+        print(f"Forced spawn of 1 lumberjack at ({x}, {z})")
 
 
 def spawn_trees(world: World, density: float = 0.08) -> None:

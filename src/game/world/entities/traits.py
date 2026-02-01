@@ -14,3 +14,4 @@ class Chopper(BaseModel):
 class Mover(BaseModel):
     speed: float = 2.0
     destination: tuple[float, float] | None = None
+    path: list[tuple[int, int]] = [] # Add this!
