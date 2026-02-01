@@ -22,7 +22,7 @@ class MockChopTrait(ActorTrait):
 def test_set_action_by_verb():
     """Verify set_action finds the correct trait based on the verb."""
     chop_trait = MockChopTrait()
-    entity = BaseEntity(position=(0, 0), traits=[chop_trait])
+    entity = BaseEntity(position=(0, 0), traits=[chop_trait], asset="lumberjack")
     
     # We pass the VERB, not the trait object
     entity.set_action(MockVerbs.CHOP, "tree_1", (5, 5))
@@ -33,14 +33,14 @@ def test_set_action_by_verb():
 
 def test_set_action_invalid_verb():
     """Verify error is raised if the entity lacks a trait for the requested verb."""
-    entity = BaseEntity(position=(0, 0), traits=[]) # No traits
+    entity = BaseEntity(position=(0, 0), traits=[], asset="lumberjack")
     
     with pytest.raises(ValueError, match="does not have a trait capable of verb"):
         entity.set_action(MockVerbs.CHOP, "target_1")
 
 def test_clear_action_resets_everything():
     """Ensure clear_action wipes all internal action state."""
-    entity = BaseEntity(position=(0, 0), traits=[MockChopTrait()])
+    entity = BaseEntity(position=(0, 0), traits=[MockChopTrait()], asset="lumberjack")
     entity.set_action(MockVerbs.CHOP, "target_1", (1, 1))
     
     entity.clear_action()
@@ -52,7 +52,7 @@ def test_clear_action_resets_everything():
 def test_entity_map_sync_after_verb_action():
     """Verify EntityMap correctly indexes entity after setting action by verb."""
     emap = EntityMap()
-    entity = BaseEntity(position=(0, 0), traits=[MockChopTrait()])
+    entity = BaseEntity(position=(0, 0), traits=[MockChopTrait()], asset="lumberjack")
     emap.add(entity)
     
     assert entity.id not in emap.active_ids

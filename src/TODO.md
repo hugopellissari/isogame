@@ -1,2 +1,1 @@
-- Fix the floating point operations for dt in systems. Sometimes when we approach the target, we have erratic behavior because of it.
-- Make sure to not need to update tne entitues every fucking single time.
+- Fix the floating point operations for dt in systems. Sometimes when we approach the target, we have erratic behavior because of it. Maybe using int or something else besides float for calculating things? Not sure...

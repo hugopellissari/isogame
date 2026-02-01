@@ -25,7 +25,7 @@ class DamageEvent(BaseEvent):
 # --- 2. Define Handlers ---
 
 class ChopHandler(CommandHandler):
-    def process(self, game, command: ChopCommand):
+    def __call__(self, game, command: ChopCommand):
         actor = game.entity_map.get(command.actor_id)
         target = game.entity_map.get(command.target_id)
         if actor and target:
@@ -35,7 +35,7 @@ class ChopHandler(CommandHandler):
 
 
 class DamageHandler(EventHandler):
-    def process(self, game, event: DamageEvent):
+    def __call__(self, game, event: DamageEvent):
         target = game.entity_map.get(event.target_id)
         # In a real game, you'd find a HealthTrait here
         if not hasattr(target, "hp"):
@@ -82,8 +82,8 @@ def test_headless_lumberjack_simulation():
     game.event_processor.register_handler(DamageEvent, DamageHandler())
     
     # ENTITIES
-    lumberjack = BaseEntity(position=(0, 0), traits=[MovableTrait(speed=2.0), CanChop()])
-    tree = Tree(position=(5, 0), traits=[Choppable()])
+    lumberjack = BaseEntity(position=(0, 0), traits=[MovableTrait(speed=2.0), CanChop()], asset="lumberjack")
+    tree = Tree(position=(5, 0), traits=[Choppable()], asset="tree")
     
     emap.add(lumberjack)
     emap.add(tree)

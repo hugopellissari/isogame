@@ -12,12 +12,12 @@ class DamageEvent(BaseEvent):
     amount: int
 
 class ChopHandler(CommandHandler):
-    def process(self, game, command: ChopCommand):
+    def __call__(self, game, command: ChopCommand):
         # Logic: Immediately assume valid for test
         game.logic_flag = "checked"
 
 class DamageHandler(EventHandler):
-    def process(self, game, event: DamageEvent):
+    def __call__(self, game, event: DamageEvent):
         game.health_result -= event.amount
 
 # 2. The Tests

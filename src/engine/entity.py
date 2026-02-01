@@ -11,6 +11,7 @@ class BaseEntity(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
     
     id: str = Field(default_factory=lambda: uuid.uuid4().hex)
+    asset: str  # defines a name to map with the asset visually
     position: tuple[float, float]
     traits: list[BaseTrait] = Field(default_factory=list)
     _destination: tuple[float, float] | None = None

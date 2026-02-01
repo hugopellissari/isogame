@@ -26,7 +26,7 @@ class CommandHandler:
     Interface for logic that validates a specific Command.
     If valid, the handler updates entity 'intent' flags (e.g., target_id, is_active).
     """
-    def process(self, game, command: BaseCommand):
+    def __call__(self, game, command: BaseCommand):
         """
         Validates the command against game rules and updates entity state.
         
@@ -42,7 +42,7 @@ class EventHandler:
     Interface for logic that reacts to a specific Event.
     Handlers here apply 'The Hand of God'—mutating raw data like health or inventory.
     """
-    def process(self, game, event: BaseEvent):
+    def __call__(self, game, event: BaseEvent):
         """
         Executes the final mutation of the game world based on a confirmed event.
         
@@ -70,7 +70,7 @@ class CommandProcessor:
         for cmd in command_queue:
             handler = self._handlers.get(type(cmd))
             if handler:
-                handler.process(game, cmd)
+                handler(game, cmd)
             else:
                 print(f"Warning: No handler registered for {type(cmd).__name__}")
 
@@ -95,4 +95,4 @@ class EventProcessor:
         for event in event_queue:
             handlers = self._handlers.get(type(event), [])
             for handler in handlers:
-                handler.process(game, event)
+                handler(game, event)

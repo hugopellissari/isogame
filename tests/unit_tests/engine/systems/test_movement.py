@@ -20,7 +20,7 @@ def test_movement_step():
     game = Game(MagicMock(), emap) # Terrain can stay mocked
     
     # Setup entity
-    entity = BaseEntity(position=(0, 0), traits=[MovableTrait(speed=2.0)])
+    entity = BaseEntity(position=(0, 0), traits=[MovableTrait(speed=2.0)], asset="lumberjack")
     entity.move_to((10, 0))
     emap.add(entity)
     
@@ -40,7 +40,7 @@ def test_movement_arrival():
     emap = EntityMap()
     game = Game(MagicMock(), emap)
     
-    entity = BaseEntity(position=(9.5, 0), traits=[MovableTrait(speed=1.0)])
+    entity = BaseEntity(position=(9.5, 0), traits=[MovableTrait(speed=1.0)], asset="lumberjack")
     entity.move_to((10, 0))
     emap.add(entity)
     emap.reconcile()
