@@ -16,8 +16,9 @@ def wandering_world():
     world.entity_map.entities.clear()
     
     # Force map to be 100% LAND by default for easy testing
-    for tile in world.terrain_map.tiles:
-        tile.terrain = TerrainType.land
+    for tile_row in world.terrain_map.tiles:
+        for tile in tile_row:
+            tile.terrain = TerrainType.land
         
     return world
 
@@ -90,9 +91,10 @@ def test_water_avoidance_logic(wandering_world, idle_unit):
     wandering_world.entity_map.add(idle_unit)
     
     # 1. Terraform the map into an Ocean
-    for tile in wandering_world.terrain_map.tiles:
-        tile.terrain = TerrainType.water
-        
+    for tile_row in wandering_world.terrain_map.tiles:
+        for tile in tile_row:
+            tile.terrain = TerrainType.water
+            
     # 2. Tick the system
     # Since all 5 random attempts will hit water, it should give up.
     wandering_world.tick(dt=1.0)

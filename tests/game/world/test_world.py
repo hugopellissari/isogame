@@ -105,7 +105,7 @@ def test_spawn_units_respects_water():
     # Force override terrain to be all water
     for x in range(5):
         for z in range(5):
-            world.terrain_map.tiles[z * 5 + x].terrain = TerrainType.water
+            world.terrain_map.tiles[z][x].terrain = TerrainType.water
             
     # Clear any existing entities from generation
     world.entity_map.entities.clear()
