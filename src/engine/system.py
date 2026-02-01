@@ -20,14 +20,21 @@ class MovementSystem(System):
     def update(self, game: "Game", dt: float):
         # Optimized: Only iterate over entities the map knows are active
         for entity in game.entity_map.get_active_entities():
+            movable = entity.get_trait(MovableTrait)
+            if not movable or not movable.destination:
+                continue
+
+            if not movable.path:
+                # TODO If the trait has a destination set, and no path, we need to define
+                # a path to that destination that overcomes obstacles.
+                # For now, we just provide the destination
+                movable.set_path([movable.destination])
+
             if not entity.is_moving:
                 continue
-            
-            dest_pos = entity.destination
-            movable = entity.get_trait(MovableTrait)
-            
-            if dest_pos is None or not movable:
-                continue
+
+            # Here we will have to navigate to the next waypoint in the path
+            dest_pos = movable.path.pop()
 
             current_pos = entity.position
             dx = dest_pos[0] - current_pos[0]
@@ -53,14 +60,18 @@ class MovementSystem(System):
 class InteractionSystem(System):
     def update(self, game: "Game", dt: float):
         for actor in game.entity_map.get_active_entities():
-            if not actor.active_action_trait or not actor.action_target_id:
+            active_trait = actor.active_action_trait
+            if not active_trait:
                 continue
 
-            target = game.entity_map.get(actor.action_target_id)
+            if not active_trait.target_id:
+                raise ValueError("Active trait has no target")
+
+            target = game.entity_map.get(active_trait.target_id)
             
             # 1. Target Missing Cleanup
             if not target:
-                actor.clear_action()
+                actor.stop_action()
                 continue
 
             receiver = self._find_matching_receiver(actor.active_action_trait, target)

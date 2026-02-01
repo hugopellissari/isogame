@@ -72,4 +72,4 @@ def test_interaction_target_missing_clears_action():
     
     system.update(game, 0.1)
     
-    assert actor.action_target_id is None
+    assert actor.active_action_trait is None

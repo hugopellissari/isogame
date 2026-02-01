@@ -3,9 +3,10 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from engine.trait import ActorTrait, BaseTrait, InteractionVerb
+from engine.trait import ActorTrait, BaseTrait, InteractionVerb, MovableTrait
 
 T = TypeVar("T", bound=BaseTrait)
+
 
 class BaseEntity(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
@@ -16,35 +17,25 @@ class BaseEntity(BaseModel):
     traits: list[BaseTrait] = Field(default_factory=list)
     # TODO refactor this. Let's put all those private methods into the traits.
     # Othreweise every new trait that needs some specific state will need to update
-    # the entities..
-    _destination: tuple[float, float] | None = None
-    _active_action_trait: ActorTrait | None = None
-    _action_target_id: str | None = None
+    # the entities..e
 
-    @property
-    def destination(self) -> tuple[float, float] | None:
-        return self._destination
-    
     @property
     def active_action_trait(self):
-        return self._active_action_trait
-
-    @property
-    def action_target_id(self) -> str | None:
-        return self._action_target_id
-    
-    @destination.setter
-    def destination(self, value: tuple[float, float] | None):
-        self._destination = value
+        """Returns the ActorTrait that is currently active."""
+        actor_traits = [t for t in self.traits if isinstance(t, ActorTrait)]
+        active_traits = [t for t in actor_traits if t.is_active]
+        return active_traits[0] if active_traits else None
 
     @property
     def is_moving(self) -> bool:
-        return self.destination is not None
+        # TODO has a MovableTrait and destination is not None
+        movable_trait = self.get_trait(MovableTrait)
+        return movable_trait is not None and movable_trait.is_moving
 
     @property
     def is_active(self) -> bool:
         """Determines if the entity needs system processing this frame."""
-        return self.is_moving or self.active_action_trait is not None or self.action_target_id is not None
+        return self.is_moving or self.active_action_trait is not None
 
     def get_trait(self, trait_type: Type[T]) -> T | None:
         """Returns the first trait matching the given type."""
@@ -59,7 +50,10 @@ class BaseEntity(BaseModel):
         target_id: str, 
         destination: tuple[float, float] | None = None
     ):
-        # 1. Look for an ActorTrait that supports this verb
+        # TODO what happens if the user tries to set an action when something is already going on?
+        # I think we should cancel the previous action and start the new one
+        self.stop_action()
+
         trait = next(
             (t for t in self.traits 
              if isinstance(t, ActorTrait) and interaction_verb in t.can_act_on), 
@@ -70,24 +64,33 @@ class BaseEntity(BaseModel):
             raise ValueError(
                 f"Entity {self.id} does not have a trait capable of verb: {interaction_verb}"
             )
-
-        # 2. Assign to private attributes
-        self._active_action_trait = trait
-        self._action_target_id = target_id
+        
+        trait.activate(target_id)
         if destination:
-            self._destination = destination
-    
-    def clear_action(self):
-        if self._action_target_id and self._active_action_trait:
-            self._active_action_trait = None
-            self._action_target_id = None
-            self._destination = None
+            self.move_to(destination)
 
-    def move_to(self, target_position: tuple[float, float]):
-        self._destination = target_position
+    def move_to(self, destination: tuple[float, float]):
+        movable_trait = self.get_trait(MovableTrait)
+        if not movable_trait:
+            raise ValueError("Entity does not have a MovableTrait")
+        movable_trait.set_destination(destination)
+
+    @property
+    def destination(self):
+        movable_trait = self.get_trait(MovableTrait)
+        return movable_trait.destination if movable_trait else None
+
+    def stop_action(self):
+        active_action = self.active_action_trait
+        if active_action:
+            active_action.deactivate()
+        
+        self.stop_movement()
 
     def stop_movement(self):
-        self._destination = None
+        movable_trait = self.get_trait(MovableTrait)
+        if movable_trait:
+            movable_trait.stop()
 
 
 class EntityMap(BaseModel):
