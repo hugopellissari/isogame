@@ -1,4 +1,4 @@
-from ursina import Ursina, camera, Vec3, window, time, EditorCamera
+from ursina import Ursina, camera, Vec3, window, time, Entity, color
 from game.world.world import World
 from game.world.terrain.tile import TerrainType
 from graphics.scene import SceneManager 
@@ -6,8 +6,13 @@ from graphics.scene import SceneManager
 # CONFIGURATION
 MAP_SIZE = 64 
 
+# 1. INITIALIZE CORE OBJECTS AT GLOBAL SCOPE
+# This allows the update() function to "see" them.
+app = Ursina()
+world = World.generate(width=MAP_SIZE, height=MAP_SIZE)
+scene = SceneManager()
+
 def configure_app():
-    app = Ursina()
     window.title = "My Engine"
     window.borderless = False 
     
@@ -20,50 +25,39 @@ def configure_app():
     camera.rotation = Vec3(35.264, 45, 0)
     camera.position -= camera.forward * 100
 
-    return app
+def update():
+    """Ursina automatically looks for this function in the global scope."""
+    # This print will now appear in your console every frame
+    # print(f"Ticking world at {1/time.dt:.1f} FPS") 
+    
+    # A. Logic Systems (Update Data)
+    world.tick(time.dt)
 
+    # B. Graphics Sync
+    scene.sync(
+        world_events=world.events, 
+        dynamic_entities=world.entity_map.units
+    )
+
+    # C. Cleanup Events
+    world.events.clear()
 
 def main():
-    app = configure_app()
+    configure_app()
 
-    # 1. GENERATE DATA
-    print(f"Generating {MAP_SIZE}x{MAP_SIZE} World...")
-    world = World.generate(width=MAP_SIZE, height=MAP_SIZE)
-
-    # 2. SETUP SCENE
-    scene = SceneManager()
-
-    # A. Draw Terrain (Static)
-    # We still loop manually for terrain because it's a grid, not entities.
+    # 1. GENERATE TERRAIN
     print("Building Terrain...")
     for x in range(world.terrain_map.width):
         for z in range(world.terrain_map.height):
              tile = world.terrain_map.tile_at(x, z)
+             # Passing parent=scene or specific logic here if needed
              scene.add_tile(x, z, tile.terrain == TerrainType.water)
     
-    # Important: Merge terrain into one mesh for FPS
-    # TODO Let's leave this out for now as it is making everything white!!
-    # scene.finish_terrain() 
-
-    # B. Draw Entities (Dynamic)
-    # This replaces your old 'sync_scene' function.
-    # It automatically looks at the dictionary and draws all trees/units.
+    # 2. SPAWN ENTITIES
     print("Spawning Entities...")
     scene.init_world(world.entity_map)
     
-    # 3. GAME LOOP
-    def update():
-        # A. Logic Systems (Update Data)
-        world.tick(time.dt)
-
-        scene.sync(
-            world_events=world.events, 
-            dynamic_entities=world.entity_map.units
-        )
-
-        # C. Cleanup Events
-        world.events.clear()
-
+    # 3. START ENGINE
     app.run()
 
 if __name__ == "__main__":

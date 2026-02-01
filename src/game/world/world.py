@@ -31,6 +31,7 @@ class World(BaseModel):
     systems: list[System] = Field(default_factory=list, exclude=True)
 
     def tick(self, dt: float):
+        print(f"Ticking {len(self.systems)} systems...")
         for system in self.systems:
             system.update(self, dt)
 
