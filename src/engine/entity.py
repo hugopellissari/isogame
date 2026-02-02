@@ -1,4 +1,4 @@
-from typing import Generator, Type, TypeVar
+from typing import Generator, Type, TypeVar, cast
 import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -8,6 +8,12 @@ from engine.trait import BaseTrait
 T = TypeVar("T", bound=BaseTrait)
 
 
+class NullTrait:
+    """Swallows calls so entity.movable_trait.move_to() doesn't crash if missing."""
+    def __getattr__(self, _):
+        return lambda *args, **kwargs: None
+
+
 class BaseEntity(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
     
@@ -15,6 +21,10 @@ class BaseEntity(BaseModel):
     asset: str
     position: tuple[float, float]
     traits: list[BaseTrait] = Field(default_factory=list)
+
+    def as_a(self, trait_type: Type[T]) -> T | NullTrait:
+        trait = self.get_trait(trait_type)
+        return cast(T, trait or NullTrait())
 
     def get_trait(self, trait_type: Type[T]) -> T | None:
         # TODO make use of dicts to ensure O(1) access

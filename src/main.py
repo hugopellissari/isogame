@@ -38,9 +38,8 @@ class EntityCollisionEvent(BaseEvent):
 
 
 def handle_move_command(game: Game, command: MoveCommand):
-    entity = game.entities.get(command.entity_id)
-    if entity:
-        entity.move_to(command.target_pos)
+    if entity := game.entities.get(command.entity_id):
+        entity.as_a(MovableTrait).move_to(command.target_pos)
 
 
 def handle_collision_event(game: Game, event: EntityCollisionEvent):
@@ -80,11 +79,11 @@ def handle_collision_event(game: Game, event: EntityCollisionEvent):
     )
 
     # 4. Stop their current movement (Reset targets)
-    source.move_to(source.position)
-    target.move_to(target.position)
+    source.as_a(MovableTrait).move_to(source.position)
+    target.as_a(MovableTrait).move_to(target.position)
+
 
 # --- 3. THE COLLISION SYSTEM ---
-
 class CollisionSystem(System):
     """Purely detects proximity and informs the engine via Events."""
     def update(self, game: Game, dt: float):
@@ -122,7 +121,6 @@ class LumberjackGame(Game):
         # Add Systems
         instance.systems.append(MovementSystem())
         instance.systems.append(CollisionSystem()) # Logic for proximity
-        instance.systems.append(InteractionSystem())
         
         return instance
 
@@ -142,11 +140,11 @@ if __name__ == "__main__":
 
     # Add Entities
     jack = BaseEntity(position=(2.0, 2.0), asset="lumberjack", traits=[MovableTrait(speed=5.0)])
-    game_instance.entity_map.add(jack)
+    game_instance.entities.add(jack)
     
     # Scatter some trees
-    game_instance.entity_map.add(BaseEntity(position=(5, 5), asset="tree"))
-    game_instance.entity_map.add(BaseEntity(position=(8, 2), asset="tree"))
+    game_instance.entities.add(BaseEntity(position=(5, 5), asset="tree"))
+    game_instance.entities.add(BaseEntity(position=(8, 2), asset="tree"))
 
     mapper = SceneMapper(asset_library)
     renderer = UrsinaRenderer()

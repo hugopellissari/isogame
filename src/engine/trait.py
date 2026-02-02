@@ -23,8 +23,8 @@ class MovableTrait(BaseTrait):
     def set_path(self, path: list[tuple[float, float]]):
         self.path = path
     
-    def move_to(self, x: float, y: float):
-        self.destination = (x, y)
+    def move_to(self, position: tuple[float, float]):
+        self.destination = position
         self.path = []
     
     def stop_movement(self):

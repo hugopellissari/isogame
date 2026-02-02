@@ -22,13 +22,13 @@ def test_movement_step():
     # Setup entity
     entity = BaseEntity(position=(0, 0), traits=[MovableTrait(speed=2.0)], asset="lumberjack")
     emap.add(entity)
-    entity.get_trait(MovableTrait).move_to(10, 0)
+    entity.as_a(MovableTrait).move_to((10, 0))
     
     # 2. Update (dt = 1.0, speed = 2.0 -> should move 2 units)
     system.update(game, 1.0)
     trait = entity.get_trait(MovableTrait)
     assert entity.position[0] == pytest.approx(2.0)
-    assert trait.is_moving is True
+    assert entity.as_a(MovableTrait).is_moving is True
 
 
 def test_movement_arrival():
@@ -39,10 +39,10 @@ def test_movement_arrival():
     
     entity = BaseEntity(position=(9.5, 0), traits=[MovableTrait(speed=1.0)], asset="lumberjack")
     emap.add(entity)
-    entity.get_trait(MovableTrait).move_to(10, 0)
+    entity.as_a(MovableTrait).move_to((10, 0))
 
     # Should arrive in 1.0s (covers 1.0 distance, only needs 0.5)
     system.update(game, 1.0)
     
     assert entity.position == (10.0, 0.0)
-    assert entity.get_trait(MovableTrait).is_moving is False
+    assert entity.as_a(MovableTrait).is_moving is False

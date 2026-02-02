@@ -94,15 +94,13 @@ class InteractionSystem(System):
                 continue
 
             # 2. Spatial Validation with Epsilon
-            movable_trait = actor.get_trait(MovableTrait)
             if not self._is_in_range(actor, target, action_trait.range):
-                if movable_trait:
-                    movable_trait.move_to(target.position[0], target.position[1])
+                actor.as_a(MovableTrait).move_to(target.position)
 
             else:
                 # If we are in range, stop moving so the interaction is stable
-                if movable_trait and movable_trait.is_moving:
-                    movable_trait.stop_movement()
+                if actor.as_a(MovableTrait).is_moving:
+                    actor.as_a(MovableTrait).stop_movement()
 
                 # 3. Logic Execution
                 events = self.handle_action(actor, target)
