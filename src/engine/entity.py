@@ -101,8 +101,7 @@ class EntityMap(BaseModel):
 
     def add(self, entity: BaseEntity):
         self.entities[entity.id] = entity
-        self.update(entity)
-
+ 
     def remove(self, entity_id: str):
         if entity_id in self.entities:
             del self.entities[entity_id]
@@ -111,15 +110,14 @@ class EntityMap(BaseModel):
     def get(self, entity_id: str) -> BaseEntity | None:
         return self.entities.get(entity_id)
 
-    def update(self, entity: BaseEntity):
-        """
-        Re-evaluates whether an entity should be in the active set.
-        Call this whenever an entity's 'is_active' state might have changed.
-        """
-        if entity.is_active:
-            self.active_ids.add(entity.id)
-        else:
-            self.active_ids.discard(entity.id)
+    def list_with_trait(self, trait_class: type[T], active_only: bool = False) -> list[BaseEntity]:
+        entities = [
+            entity for entity in self.entities.values()
+            if isinstance(entity, trait_class)
+        ]
+        if active_only:
+            entities = [e for e in entities if e.is_active]
+        return entities
 
     def clear(self):
         self.entities.clear()

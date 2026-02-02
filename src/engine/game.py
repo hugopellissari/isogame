@@ -12,8 +12,8 @@ class Game:
     entities, systems, commands, and events.
     """
     def __init__(self, terrain_map: "TerrainMap", entity_map: "EntityMap"):
-        self.terrain_map = terrain_map
-        self.entity_map = entity_map
+        self.terrain = terrain_map
+        self.entities = entity_map
         
         # Simulation components
         self.systems: list["System"] = []

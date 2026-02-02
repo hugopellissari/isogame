@@ -51,8 +51,8 @@ def test_interaction_out_of_range():
     target = BaseEntity(position=(10, 0), asset="tree") # Way out of range
     target.traits = [Choppable()]
     
-    game.entity_map.get.return_value = target
-    game.entity_map.entities = {"lumberjack": actor}
+    game.entities.get.return_value = target
+    game.entities.entities = {"lumberjack": actor}
     
     system.update(game, 0.1)
     
@@ -67,8 +67,8 @@ def test_interaction_target_missing_clears_action():
     actor.set_action(Verb.CHOP, "dead_tree")
     
     # PRIME THE MOCK: Tell it to return our actor in the loop
-    game.entity_map.get_active_entities.return_value = [actor]
-    game.entity_map.get.return_value = None 
+    game.entities.get_active_entities.return_value = [actor]
+    game.entities.get.return_value = None 
     
     system.update(game, 0.1)
     

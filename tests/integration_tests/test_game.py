@@ -26,21 +26,21 @@ class DamageEvent(BaseEvent):
 
 class ChopHandler(CommandHandler):
     def __call__(self, game, command: ChopCommand):
-        actor = game.entity_map.get(command.actor_id)
-        target = game.entity_map.get(command.target_id)
+        actor = game.entities.get(command.actor_id)
+        target = game.entities.get(command.target_id)
         if actor and target:
             actor.set_action(MyVerbs.CHOP, target.id, target.position)
 
 
 class DamageHandler(EventHandler):
     def __call__(self, game, event: DamageEvent):
-        target = game.entity_map.get(event.target_id)
+        target = game.entities.get(event.target_id)
         # In a real game, you'd find a HealthTrait here
         if not hasattr(target, "hp"):
             target.hp = 100
         target.hp -= event.amount
         if target.hp <= 0:
-            game.entity_map.remove(target.id)
+            game.entities.remove(target.id)
 
 # --- 3. Define Concrete Traits ---
 

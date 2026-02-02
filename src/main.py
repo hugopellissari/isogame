@@ -37,14 +37,14 @@ class EntityCollisionEvent(BaseEvent):
     target_id: str
 
 def handle_move_command(game: Game, command: MoveCommand):
-    entity = game.entity_map.get(command.entity_id)
+    entity = game.entities.get(command.entity_id)
     if entity:
         entity.move_to(command.target_pos)
 
 def handle_collision_event(game: Game, event: EntityCollisionEvent):
     """Instead of killing, we push both entities away from each other."""
-    source = game.entity_map.get(event.source_id)
-    target = game.entity_map.get(event.target_id)
+    source = game.entities.get(event.source_id)
+    target = game.entities.get(event.target_id)
     
     if not source or not target:
         return
@@ -87,11 +87,11 @@ class CollisionSystem(System):
     """Purely detects proximity and informs the engine via Events."""
     def update(self, game: Game, dt: float):
         # 1. Find the Jack
-        jack = next((e for e in game.entity_map.entities.values() if e.asset == "lumberjack"), None)
+        jack = next((e for e in game.entities.entities.values() if e.asset == "lumberjack"), None)
         if not jack: return
 
         # 2. Check proximity to trees
-        for eid, entity in game.entity_map.entities.items():
+        for eid, entity in game.entities.entities.items():
             if entity.asset == "tree":
                 dist = math.sqrt(
                     (jack.position[0] - entity.position[0])**2 + 

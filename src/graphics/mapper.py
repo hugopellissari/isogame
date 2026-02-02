@@ -18,9 +18,9 @@ class SceneMapper:
         
         # 1. Map Terrain (Static)
         # Fix: Iterate through the 2D list using indices
-        for x in range(game.terrain_map.width):
-            for y in range(game.terrain_map.height):
-                tile = game.terrain_map.tiles[x][y]
+        for x in range(game.terrain.width):
+            for y in range(game.terrain.height):
+                tile = game.terrain.tiles[x][y]
                 
                 # Use the terrain enum value as the lookup key for the asset library
                 asset = self.library.get(tile.terrain.value) 
@@ -34,7 +34,7 @@ class SceneMapper:
                     ))
 
         # 2. Map Entities (Dynamic)
-        for eid, entity in game.entity_map.entities.items():
+        for eid, entity in game.entities.entities.items():
             # Ensure your BaseEntity has an asset_id attribute!
             asset = self.library.get(entity.asset)
             if asset:

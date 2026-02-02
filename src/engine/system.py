@@ -19,7 +19,7 @@ class System:
 class MovementSystem(System):
     def update(self, game: "Game", dt: float):
         # Optimized: Only iterate over entities the map knows are active
-        for entity in game.entity_map.get_active_entities():
+        for entity in game.entities.get_active_entities():
             movable = entity.get_trait(MovableTrait)
             if not movable or not movable.destination:
                 continue
@@ -59,7 +59,7 @@ class MovementSystem(System):
 
 class InteractionSystem(System):
     def update(self, game: "Game", dt: float):
-        for actor in game.entity_map.get_active_entities():
+        for actor in game.entities.get_active_entities():
             active_trait = actor.active_action_trait
             if not active_trait:
                 continue
@@ -67,7 +67,7 @@ class InteractionSystem(System):
             if not active_trait.target_id:
                 raise ValueError("Active trait has no target")
 
-            target = game.entity_map.get(active_trait.target_id)
+            target = game.entities.get(active_trait.target_id)
             
             # 1. Target Missing Cleanup
             if not target:
