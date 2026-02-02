@@ -20,9 +20,8 @@ class System:
 class MovementSystem(System):
     def update(self, game: "Game", dt: float):
         # Optimized: Only iterate over entities the map knows are active
-        for entity in game.entities.list_with_trait(MovableTrait):
-            movable = entity.get_trait(MovableTrait)
-            if not movable or not movable.destination:
+        for entity, movable in game.entities.yield_entities_with_trait(MovableTrait):
+            if not movable.destination:
                 continue
 
             if not movable.path:
@@ -79,8 +78,7 @@ class InteractionSystem(System):
         return self.can_act(actor, target)
 
     def update(self, game: "Game", dt: float):
-        for actor in game.entities.list_with_trait(self.actor_trait_subclass):
-            action_trait = actor.get_trait(self.actor_trait_subclass)
+        for actor, action_trait in game.entities.yield_entities_with_trait(self.actor_trait_subclass):
             if not action_trait:
                 continue
 

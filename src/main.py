@@ -36,10 +36,12 @@ class EntityCollisionEvent(BaseEvent):
     source_id: str
     target_id: str
 
+
 def handle_move_command(game: Game, command: MoveCommand):
     entity = game.entities.get(command.entity_id)
     if entity:
         entity.move_to(command.target_pos)
+
 
 def handle_collision_event(game: Game, event: EntityCollisionEvent):
     """Instead of killing, we push both entities away from each other."""

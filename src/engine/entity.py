@@ -1,4 +1,4 @@
-from typing import Type, TypeVar
+from typing import Generator, Type, TypeVar
 import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -42,11 +42,16 @@ class EntityMap(BaseModel):
     def get(self, entity_id: str) -> BaseEntity | None:
         return self.entities.get(entity_id)
 
-    def list_with_trait(self, trait_class: type[T]) -> list[BaseEntity]: # TODO fix typing
+    def yield_entities_with_trait(self, trait_class: Type[T]) -> Generator[tuple[BaseEntity, T], None, None]:
+        """
+        Iterates through all entities and yields pairs of (entity, trait_instance)
+        only for entities that possess the requested trait.
+        """
         for entity in self.entities.values():
-            for trait in entity.traits:
-                if isinstance(trait, trait_class):  
-                    yield entity
+            trait = entity.get_trait(trait_class)
+            if trait is not None:
+                # We yield the entity and the specific trait instance
+                yield entity, trait
 
     def clear(self):
         self.entities.clear()
