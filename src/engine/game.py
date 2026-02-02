@@ -36,8 +36,6 @@ class Game:
         """
         The deterministic heartbeat of the game.
         """
-        # Make sure we update the list of active ids at every tick
-        self.entity_map.reconcile()
         # 1. Intent: What does the user/AI want to do?
         self.command_processor.process(self, self.command_queue)
         self.command_queue.clear()

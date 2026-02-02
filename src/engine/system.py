@@ -1,9 +1,10 @@
 from abc import abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 from math import sqrt
 
-from engine.cqrs import EntityArrivedEvent
-from engine.trait import MovableTrait, ReceiverTrait
+from engine.cqrs import EntityArrivedEvent, BaseEvent
+from engine.entity import BaseEntity
+from engine.trait import ActorTrait, MovableTrait, ReceiverTrait
 
 if TYPE_CHECKING:
     from engine.game import Game
@@ -19,7 +20,7 @@ class System:
 class MovementSystem(System):
     def update(self, game: "Game", dt: float):
         # Optimized: Only iterate over entities the map knows are active
-        for entity in game.entities.get_active_entities():
+        for entity in game.entities.list_with_trait(MovableTrait):
             movable = entity.get_trait(MovableTrait)
             if not movable or not movable.destination:
                 continue
@@ -30,7 +31,7 @@ class MovementSystem(System):
                 # For now, we just provide the destination
                 movable.set_path([movable.destination])
 
-            if not entity.is_moving:
+            if not movable.is_moving:
                 continue
 
             # Here we will have to navigate to the next waypoint in the path
@@ -47,7 +48,7 @@ class MovementSystem(System):
             if distance <= move_distance + EPSILON:
                 # SNAP: Force exact coordinates to prevent rounding drift
                 entity.position = dest_pos
-                entity.stop_movement() 
+                movable.stop_movement() 
                 game.enqueue_event(EntityArrivedEvent(entity_id=entity.id))
             else:
                 # STEP: Move toward destination
@@ -58,48 +59,57 @@ class MovementSystem(System):
 
 
 class InteractionSystem(System):
+    @property
+    @abstractmethod
+    def actor_trait_subclass(self) -> Type[ActorTrait]:
+        ...
+
+    @abstractmethod
+    def handle_action(self, actor: BaseEntity, target: BaseEntity) -> list[BaseEvent]:
+        ...
+
+    def can_act(self, actor: BaseEntity, target: BaseEntity) -> bool:
+        return self._can_act(actor, target)
+
+    def _can_act(self, actor: BaseEntity, target: BaseEntity):
+        verb = self.actor_trait_subclass.verb
+        for trait in target.traits:
+            if isinstance(trait, ReceiverTrait):
+                return trait.verb == verb
+        return self.can_act(actor, target)
+
     def update(self, game: "Game", dt: float):
-        for actor in game.entities.get_active_entities():
-            active_trait = actor.active_action_trait
-            if not active_trait:
+        for actor in game.entities.list_with_trait(self.actor_trait_subclass):
+            action_trait = actor.get_trait(self.actor_trait_subclass)
+            if not action_trait:
                 continue
 
-            if not active_trait.target_id:
+            if not action_trait.target_id:
                 raise ValueError("Active trait has no target")
 
-            target = game.entities.get(active_trait.target_id)
-            
-            # 1. Target Missing Cleanup
+            target = game.entities.get(action_trait.target_id)
             if not target:
-                actor.stop_action()
+                action_trait.stop()
                 continue
-
-            receiver = self._find_matching_receiver(actor.active_action_trait, target)
-            if not receiver:
+            
+            if not self._can_act(actor, target):
                 continue
 
             # 2. Spatial Validation with Epsilon
-            interaction_range = getattr(actor.active_action_trait, 'range', 1.0)
-            
-            if self._is_in_range(actor, target, interaction_range):
+            movable_trait = actor.get_trait(MovableTrait)
+            if not self._is_in_range(actor, target, action_trait.range):
+                if movable_trait:
+                    movable_trait.move_to(target.position[0], target.position[1])
+
+            else:
                 # If we are in range, stop moving so the interaction is stable
-                if actor.is_moving:
-                    actor.stop_movement()
+                if movable_trait and movable_trait.is_moving:
+                    movable_trait.stop_movement()
 
                 # 3. Logic Execution
-                events = []
-                events.extend(actor.active_action_trait.on_perform_action(actor, target))
-                events.extend(receiver.on_receive_action(actor, target))
-
+                events = self.handle_action(actor, target)
                 for event in events:
                     game.enqueue_event(event)
-
-    def _find_matching_receiver(self, actor_trait, target_entity):
-        for trait in target_entity.traits:
-            if isinstance(trait, ReceiverTrait):
-                if trait.verb in actor_trait.can_act_on:
-                    return trait
-        return None
 
     def _is_in_range(self, actor, target, interaction_range):
         dx = actor.position[0] - target.position[0]

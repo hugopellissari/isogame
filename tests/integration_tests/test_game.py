@@ -1,3 +1,4 @@
+from typing import ClassVar
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,56 +10,61 @@ from engine.system import MovementSystem, InteractionSystem
 from engine.trait import MovableTrait, ActorTrait, ReceiverTrait, InteractionVerb
 from engine.cqrs import BaseCommand, BaseEvent, CommandHandler, EventHandler
 
-# --- 1. Define Game-Specific Verbs and Logic ---
 
 class MyVerbs(InteractionVerb):
     CHOP = "chop"
+
 
 class ChopCommand(BaseCommand):
     actor_id: str
     target_id: str
 
-class DamageEvent(BaseEvent):
+
+class ChopReceivedEvent(BaseEvent):
     target_id: str
     amount: int
 
-# --- 2. Define Handlers ---
+class ChopperTrait(ActorTrait):
+    range: float = 0
+    damage: int = 20
+    verb: ClassVar[InteractionVerb] = MyVerbs.CHOP
+
+
+class Choppable(ReceiverTrait):
+    verb: MyVerbs = MyVerbs.CHOP
+    hp: int
+
 
 class ChopHandler(CommandHandler):
     def __call__(self, game, command: ChopCommand):
         actor = game.entities.get(command.actor_id)
         target = game.entities.get(command.target_id)
         if actor and target:
-            actor.set_action(MyVerbs.CHOP, target.id, target.position)
+            chop_trait = actor.get_trait(ChopperTrait)
+            chop_trait.activate(target.id)
 
 
-class DamageHandler(EventHandler):
-    def __call__(self, game, event: DamageEvent):
+class ChoppingHandler(EventHandler):
+    def __call__(self, game, event: ChopReceivedEvent):
         target = game.entities.get(event.target_id)
-        # In a real game, you'd find a HealthTrait here
-        if not hasattr(target, "hp"):
-            target.hp = 100
-        target.hp -= event.amount
-        if target.hp <= 0:
+        trait = target.get_trait(Choppable)
+        trait.hp -= event.amount
+        if trait.hp <= 0:
             game.entities.remove(target.id)
 
-# --- 3. Define Concrete Traits ---
-
-class CanChop(ActorTrait):
-    range: float = 0
-    can_act_on: list = [MyVerbs.CHOP]
-    def on_perform_action(self, actor, target):
-        return [] # Costs nothing for this test
-
-class Choppable(ReceiverTrait):
-    verb: MyVerbs = MyVerbs.CHOP
-    def on_receive_action(self, actor, target):
-        return [DamageEvent(target_id=target.id, amount=20)]
-
-# --- 4. Define entities ---
-
-class Tree(BaseEntity):
-    hp: int = 100
+class ChoppingSystem(InteractionSystem):
+    @property
+    def actor_trait_subclass(self) -> type[ActorTrait]:
+        return ChopperTrait
+    
+    def handle_action(self, actor: BaseEntity, target: BaseEntity) -> list[BaseEvent]:
+        chop_trait = actor.get_trait(ChopperTrait)
+        if not chop_trait:
+            return []
+        damage = chop_trait.damage
+        return [ChopReceivedEvent(target_id=target.id, amount=damage)]
+    
+    
 
 
 def test_headless_lumberjack_simulation():
@@ -73,15 +79,15 @@ def test_headless_lumberjack_simulation():
     
     # Systems
     game.systems.append(MovementSystem())
-    game.systems.append(InteractionSystem())
+    game.systems.append(ChoppingSystem())
     
     # Handlers
     game.command_processor.register_handler(ChopCommand, ChopHandler())
-    game.event_processor.register_handler(DamageEvent, DamageHandler())
+    game.event_processor.register_handler(ChopReceivedEvent, ChoppingHandler())
     
     # ENTITIES
-    lumberjack = BaseEntity(position=(0, 0), traits=[MovableTrait(speed=2.0), CanChop()], asset="lumberjack")
-    tree = Tree(position=(5, 0), traits=[Choppable()], asset="tree")
+    lumberjack = BaseEntity(position=(0, 0), traits=[MovableTrait(speed=2.0), ChopperTrait()], asset="lumberjack")
+    tree = BaseEntity(position=(5, 0), traits=[Choppable(hp=100)], asset="tree")
     
     emap.add(lumberjack)
     emap.add(tree)
@@ -92,8 +98,8 @@ def test_headless_lumberjack_simulation():
     # TICK 1: Process Command
     # The handler will set the destination and target_id
     game.tick(0.1) 
-    assert lumberjack.is_moving is True
-    assert lumberjack.destination == (5, 0)
+    assert lumberjack.get_trait(MovableTrait).is_moving is True
+    assert lumberjack.get_trait(MovableTrait).destination == (5, 0)
     
     # TICK 2-24: Travel time
     # At speed 2.0 and dt 0.1, it covers 0.2 units per tick.
@@ -105,7 +111,7 @@ def test_headless_lumberjack_simulation():
     # This must be the position of the lumberjack - the range, as it gets just as close
     # as it needs to trigger the inrteraction
     assert lumberjack.position == pytest.approx((5, 0))
-    assert lumberjack.is_moving is False
+    assert lumberjack.get_trait(MovableTrait).is_moving is False
     
     # TICK 26: The Handshake
     # Now in range, the InteractionSystem should trigger the DamageEvent
@@ -114,8 +120,8 @@ def test_headless_lumberjack_simulation():
     # VERIFY REALITY
     # This is currenetly failing because there is no cooldown in the actions,
     # so it performs like crazy! It should wait X ticks before performing again
-    assert tree.hp == 80 # 100 - 20 damage
-    print(f"Simulation Success: Tree HP is {tree.hp}")
+    assert tree.get_trait(Choppable).hp == 80 # 100 - 20 damage
+    print(f"Simulation Success: Tree HP is {tree.get_trait(Choppable).hp}")
 
     # TICK 27-30: Continued Chopping
     for _ in range(4):

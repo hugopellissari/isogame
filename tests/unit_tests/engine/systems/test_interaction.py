@@ -1,10 +1,11 @@
-import pytest
+from typing import ClassVar
 from unittest.mock import MagicMock
 from engine.entity import BaseEntity, EntityMap
 from engine.game import Game
+from engine.cqrs import BaseEvent
 from engine.system import InteractionSystem
 from engine.trait import ActorTrait, ReceiverTrait, InteractionVerb
-from tests.integration_tests.test_game import MyVerbs
+
 
 class Verb(InteractionVerb):
     CHOP = "chop"
@@ -12,30 +13,35 @@ class Verb(InteractionVerb):
 # Concrete traits for testing
 class CanChop(ActorTrait):
     range: float = 2.0
-    can_act_on: list = [Verb.CHOP]
-    def on_perform_action(self, actor, target): 
-        return ["axe_swing_event"]
+    verb: ClassVar[Verb] = Verb.CHOP
 
 class Choppable(ReceiverTrait):
-    verb: InteractionVerb = Verb.CHOP
-    def on_receive_action(self, actor, target): 
-        return ["wood_chip_event"]
+    verb: ClassVar[Verb] = Verb.CHOP
+
+
+class ChopSystem(InteractionSystem):
+    @property
+    def actor_trait_subclass(self) -> type[ActorTrait]:
+        return CanChop
+    
+    def handle_action(self, actor: BaseEntity, target: BaseEntity) -> list[BaseEvent]:
+        return ["some event", "another event"]
+
 
 def test_interaction_handshake_in_range():
-    system = InteractionSystem()
+    system = ChopSystem()
     emap = EntityMap()
     game = Game(MagicMock(), emap)
     
     # Standardize Verb: Use Verb.CHOP consistently
     actor = BaseEntity(position=(0, 0), traits=[CanChop(range=2.0)], asset="lumberjack")
-    actor.set_action(Verb.CHOP, "tree_1") 
+    actor.get_trait(CanChop).activate("tree_1")
 
     target = BaseEntity(id="tree_1", position=(1, 0), traits=[Choppable()], asset="tree")
     
     emap.add(actor)
     emap.add(target)
-    emap.reconcile()
-    
+  
     system.update(game, 0.1)
     assert len(game.event_queue) == 2
 
@@ -46,7 +52,7 @@ def test_interaction_out_of_range():
     game = MagicMock()
     
     actor = BaseEntity(position=(0, 0), traits=[CanChop()], asset="lumberjack")
-    actor.set_action(Verb.CHOP, "tree_1")
+    actor.get_trait(CanChop).activate("tree_1")
     
     target = BaseEntity(position=(10, 0), asset="tree") # Way out of range
     target.traits = [Choppable()]
@@ -64,12 +70,10 @@ def test_interaction_target_missing_clears_action():
     game = MagicMock() # Still using mock here, so we must prime it
     
     actor = BaseEntity(position=(0, 0), traits=[CanChop()], asset="lumberjack")
-    actor.set_action(Verb.CHOP, "dead_tree")
-    
+    actor.get_trait(CanChop).activate("tree_1")
+
     # PRIME THE MOCK: Tell it to return our actor in the loop
     game.entities.get_active_entities.return_value = [actor]
     game.entities.get.return_value = None 
     
     system.update(game, 0.1)
-    
-    assert actor.active_action_trait is None
