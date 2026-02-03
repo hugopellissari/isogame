@@ -11,15 +11,16 @@ T = TypeVar("T", bound=BaseTrait)
 
 class NullTrait:
     """Swallows calls so entity.movable_trait.move_to() doesn't crash if missing."""
+
     def __getattr__(self, _):
         return lambda *args, **kwargs: None
 
 
 class BaseEntity(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
-    
-    id: str = Field(default_factory=lambda: uuid.uuid4().hex) # this is the instane id
-    asset: str # this is the identifier of the 'class'
+
+    id: str = Field(default_factory=lambda: uuid.uuid4().hex)  # this is the instane id
+    asset: str  # this is the identifier of the 'class'
     position: Position = (0, 0, 0)
     traits: list[BaseTrait] = Field(default_factory=list)
 
@@ -49,7 +50,7 @@ class EntityMap(BaseModel):
 
     def add(self, entity: BaseEntity):
         self.entities[entity.id] = entity
- 
+
     def remove(self, entity_id: str):
         if entity_id in self.entities:
             del self.entities[entity_id]
@@ -57,7 +58,9 @@ class EntityMap(BaseModel):
     def get(self, entity_id: str) -> BaseEntity | None:
         return self.entities.get(entity_id)
 
-    def yield_entities_with_trait(self, trait_class: Type[T]) -> Generator[tuple[BaseEntity, T], None, None]:
+    def yield_entities_with_trait(
+        self, trait_class: Type[T]
+    ) -> Generator[tuple[BaseEntity, T], None, None]:
         """
         Iterates through all entities and yields pairs of (entity, trait_instance)
         only for entities that possess the requested trait.

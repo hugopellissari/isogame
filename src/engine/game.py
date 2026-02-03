@@ -8,20 +8,21 @@ from engine.terrain import TerrainMap
 
 class Game:
     """
-    The central hub of the engine. It manages the lifecycle of 
+    The central hub of the engine. It manages the lifecycle of
     entities, systems, commands, and events.
     """
+
     def __init__(self, terrain: TerrainMap, entities: EntityMap, systems: list[System]):
         self.terrain = terrain
         self.entities = entities
-        
+
         # Simulation components
         self.systems = systems
-        
+
         # Transaction Queues
         self.command_queue: list["BaseCommand"] = []
         self.event_queue: list["BaseEvent"] = []
-        
+
         # Processors
         self.command_processor = CommandProcessor()
         self.event_processor = EventProcessor()

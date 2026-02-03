@@ -20,14 +20,14 @@ class MovableTrait(BaseTrait):
     @property
     def is_moving(self) -> bool:
         return self.destination is not None
-    
+
     def set_path(self, path: list[Position]):
         self.path = path
-    
+
     def move_to(self, position: Position):
         self.destination = position
         self.path = []
-    
+
     def stop_movement(self):
         self.destination = None
         self.path = []
@@ -35,6 +35,7 @@ class MovableTrait(BaseTrait):
 
 class ActorTrait(BaseTrait):
     """Base for traits that INITIATE an action (Actor)."""
+
     verb: ClassVar[InteractionVerb]  # Must be defined by subclasses
     range: float = 1.0
     cooldown: float = 0.0
@@ -53,4 +54,5 @@ class ActorTrait(BaseTrait):
 
 class ReceiverTrait(BaseTrait):
     """Base for traits that RECEIVE an action (Target)."""
+
     verb: ClassVar[InteractionVerb]  # Must be defined by subclasses

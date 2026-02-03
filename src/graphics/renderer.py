@@ -5,8 +5,10 @@ from graphics.meshers.mesh import MeshData
 class Renderer:
     def register_mesh(self, name: str, mesh_data: MeshData):
         raise NotImplementedError
-    
-    def render_instance(self, entity_id: str, asset_name: str, position: tuple, collider: str = 'box'):
+
+    def render_instance(
+        self, entity_id: str, asset_name: str, position: tuple, collider: str = "box"
+    ):
         raise NotImplementedError
 
     def destroy_instance(self, entity_id: str):
@@ -19,17 +21,17 @@ class Renderer:
 
 class UrsinaRenderer(Renderer):
     def __init__(self):
-        self.entities = {}   # Active instances: { "id": Entity }
-        self._models = {}    # GPU Cache: { "asset_name": Mesh }
+        self.entities = {}  # Active instances: { "id": Entity }
+        self._models = {}  # GPU Cache: { "asset_name": Mesh }
 
     def register_mesh(self, name: str, mesh_data: MeshData):
         """
-        Uploads geometry to GPU. 
+        Uploads geometry to GPU.
         Works for 'tree' (reused) AND 'terrain' (unique).
         """
         # If we are regenerating the map, we might want to overwrite the old mesh
         # so we don't return early if it exists.
-        
+
         ursina_colors = [color.rgba(*c) for c in mesh_data.colors]
 
         hw_mesh = Mesh(
@@ -37,12 +39,14 @@ class UrsinaRenderer(Renderer):
             triangles=mesh_data.triangles,
             colors=ursina_colors,
             uvs=mesh_data.uvs,
-            static=True
+            static=True,
         )
-        
+
         self._models[name] = hw_mesh
 
-    def render_instance(self, entity_id: str, asset_name: str, position: tuple, collider: str = 'box'):
+    def render_instance(
+        self, entity_id: str, asset_name: str, position: tuple, collider: str = "box"
+    ):
         """
         Spawns or updates an object.
         collider: Use 'box' for entities, 'mesh' for terrain.
@@ -58,24 +62,24 @@ class UrsinaRenderer(Renderer):
             ent = self.entities[entity_id]
             ent.position = position
             return ent
-        
+
         # 3. Create new
         else:
             ent = Entity(
-                model=target_model, 
+                model=target_model,
                 position=position,
                 texture="white_cube",
-                collider=collider # <--- Pass this through!
+                collider=collider,  # <--- Pass this through!
             )
             self.entities[entity_id] = ent
             return ent
-    
+
     def destroy_instance(self, entity_id: str):
         if entity_id in self.entities:
             # 1. Remove from the Screen (Ursina)
             ursina_ent = self.entities[entity_id]
             destroy(ursina_ent)
-            
+
             # 2. Remove from Memory (Your Cache)
             del self.entities[entity_id]
         else:

@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from pydantic import BaseModel
 from typing import Generic, Iterator, Tuple, TypeVar
 
-
 TerrainID = TypeVar("TerrainID")
+
 
 @dataclass(slots=True)
 class Tile(Generic[TerrainID]):
@@ -14,6 +14,7 @@ class Tile(Generic[TerrainID]):
 
 class TerrainGenerationParams(BaseModel):
     """Configuration for the generator remains a BaseModel for easy serialization."""
+
     pass
 
 
@@ -22,7 +23,10 @@ class TerrainMap(ABC):
     Standard Python class for high-performance grid lookups.
     Using ABC (Abstract Base Class) instead of BaseModel.
     """
-    def __init__(self, width: int, height: int, tiles: list[list[Tile]], tile_scale: float):
+
+    def __init__(
+        self, width: int, height: int, tiles: list[list[Tile]], tile_scale: float
+    ):
         self.width = width
         self.height = height
         self.tiles = tiles
@@ -76,10 +80,10 @@ class TerrainMap(ABC):
         z0 = int(gz)
 
         # 3. Check Bounds
-        # We need x0+1 and z0+1 to be valid for interpolation, 
+        # We need x0+1 and z0+1 to be valid for interpolation,
         # so we subtract 1 from the upper limit check.
         if x0 < 0 or z0 < 0 or x0 >= self.width - 1 or z0 >= self.height - 1:
-            return 0.0 # Return default sea level or clamp
+            return 0.0  # Return default sea level or clamp
 
         # 4. Calculate fractional part (Weights for interpolation)
         tx = gx - x0
@@ -87,10 +91,10 @@ class TerrainMap(ABC):
 
         # 5. Fetch heights of the 4 surrounding tiles
         # Access tiles directly for speed (we already checked bounds)
-        h00 = self.tiles[x0][z0].height     # Top-Left
-        h10 = self.tiles[x0 + 1][z0].height # Top-Right
-        h01 = self.tiles[x0][z0 + 1].height # Bottom-Left
-        h11 = self.tiles[x0 + 1][z0 + 1].height # Bottom-Right
+        h00 = self.tiles[x0][z0].height  # Top-Left
+        h10 = self.tiles[x0 + 1][z0].height  # Top-Right
+        h01 = self.tiles[x0][z0 + 1].height  # Bottom-Left
+        h11 = self.tiles[x0 + 1][z0 + 1].height  # Bottom-Right
 
         # 6. Bilinear Interpolation
         # Interpolate along X
