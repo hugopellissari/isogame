@@ -48,7 +48,7 @@ def update():
 
         # Send the command
         # Note: We send (x, z) because your MovementSystem logic reads indices [0] and [1]
-        cmd = MoveCommand(destination=(dest_x, dest_z, 0))
+        cmd = MoveCommand(destination=(dest_x, 0, dest_z))
         simple_game.enqueue_command(cmd)
 
     simple_game.tick(dt)

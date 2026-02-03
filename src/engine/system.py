@@ -4,7 +4,7 @@ from math import sqrt
 
 from engine.cqrs import EntityArrivedEvent, BaseEvent
 from engine.entity import BaseEntity
-from engine.trait import ActorTrait, MovableTrait, ReceiverTrait
+from engine.trait import ActorTrait, MovableTrait, ReceiverTrait, GroundableTrait
 
 if TYPE_CHECKING:
     from engine.game import Game
@@ -147,11 +147,7 @@ class InteractionSystem(System):
 
 class TerrainSnappingSystem(System):
     def update(self, game: "Game", dt: float):
-        # iterate over all entities that should stick to the ground.
-        # We can reuse MovableTrait, or create a specific "GroundableTrait"
-        # if you have flying units later.
-        # TODO replace this if a 'GroundableTrait'
-        for entity, _ in game.entities.yield_entities_with_trait(MovableTrait):
+        for entity, _ in game.entities.yield_entities_with_trait(GroundableTrait):
 
             # 1. Get current 2D position (Unity Standard: X and Z)
             current_x, current_y, current_z = entity.position

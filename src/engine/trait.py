@@ -12,6 +12,13 @@ class BaseTrait(BaseModel):
     pass
 
 
+class GroundableTrait(BaseTrait):
+    """
+    Means the entitu won't fly around
+    """
+    pass
+
+
 class MovableTrait(BaseTrait):
     speed: float = 1.0
     destination: Position | None = None

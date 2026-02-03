@@ -3,7 +3,7 @@ from engine.system import MovementSystem, TerrainSnappingSystem
 from engine.terrain import TerrainMap, Tile
 from engine.game import Game
 from engine.entity import EntityMap, BaseEntity
-from engine.trait import MovableTrait
+from engine.trait import MovableTrait, GroundableTrait
 from engine.cqrs import BaseCommand
 
 
@@ -37,7 +37,7 @@ class BasicTerrain(TerrainMap):
 
 
 entity_map = EntityMap()
-player_entity = BaseEntity(asset="player", position=(0, 0, 0), traits=[MovableTrait()])
+player_entity = BaseEntity(asset="player", position=(0, 0, 0), traits=[MovableTrait(), GroundableTrait()])
 entity_map.add(player_entity)
 
 simple_game = Game(
