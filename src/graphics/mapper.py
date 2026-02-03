@@ -44,18 +44,12 @@ class SceneMapper:
         - Ensure we can handle dynamic spawns and despawns
         """
         for entity in game.entities.list():
-            
-            # 1. LAZY CREATION: If this entity has no visual yet, create it now.
-            if entity.id not in self.visual_instances:
-                # TODO:
-                # Ensure the mesh is registered (just in case it's a new dynamic spawn)
-                self.visual_instances[entity.id] = self.renderer.render_instance(
-                    f"vis_{entity.id}", 
-                    entity.asset, 
-                    entity.position
-                )
+            self.visual_instances[entity.id] = self.renderer.render_instance(
+                f"vis_{entity.id}", 
+                entity.asset, 
+                entity.position
+            )
 
             # 2. UPDATE: Force position sync
             visual = self.visual_instances[entity.id]
             visual.position = entity.position
-    

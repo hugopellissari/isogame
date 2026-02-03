@@ -9,19 +9,7 @@ class BasicTerrain(TerrainMap):
         for x in range(width):
             row = []
             for z in range(height):
-                # GENERATE HEIGHTS:
-                # Let's make it bumpy so we can test your slope logic!
-                # We use a simple formula (or random) to create hills.
-                
-                # Option A: Random Bumps
-                h = 0.0
-                # if random.random() > 0.7: # 30% chance of a bump
-                #     h = random.choice([0.5, 1.0])
-                
-                # Option B: A simple slope across the map
-                h = x * -0.2 
-                
-                t = Tile(terrain_id="grass", height=h)
+                t = Tile(terrain_id="grass", height=0)
                 row.append(t)
             new_tiles.append(row)
 
