@@ -1,5 +1,5 @@
 from engine.commons import Position
-from engine.system import TerrainSnappingSystem
+from engine.system import MovementSystem, TerrainSnappingSystem
 from engine.terrain import TerrainMap, Tile
 from engine.game import Game
 from engine.entity import EntityMap, BaseEntity
@@ -43,7 +43,7 @@ entity_map.add(player_entity)
 simple_game = Game(
     terrain=BasicTerrain.generate(10, 10),
     entities=entity_map,
-    systems=[TerrainSnappingSystem()],
+    systems=[TerrainSnappingSystem(), MovementSystem()],
 )
 
 
