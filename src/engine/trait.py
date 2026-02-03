@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import ClassVar
+from engine.commons import Position
 from pydantic import BaseModel, Field
 
 
@@ -13,17 +14,17 @@ class BaseTrait(BaseModel):
 
 class MovableTrait(BaseTrait):
     speed: float = 1.0
-    destination: tuple[float, float] | None = None
-    path: list[tuple[float, float]] = Field(default_factory=list)
+    destination: Position | None = None
+    path: list[Position] = Field(default_factory=list)
 
     @property
     def is_moving(self) -> bool:
         return self.destination is not None
     
-    def set_path(self, path: list[tuple[float, float]]):
+    def set_path(self, path: list[Position]):
         self.path = path
     
-    def move_to(self, position: tuple[float, float]):
+    def move_to(self, position: Position):
         self.destination = position
         self.path = []
     

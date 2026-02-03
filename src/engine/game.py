@@ -11,12 +11,12 @@ class Game:
     The central hub of the engine. It manages the lifecycle of 
     entities, systems, commands, and events.
     """
-    def __init__(self, terrain_map: "TerrainMap", entity_map: "EntityMap"):
-        self.terrain = terrain_map
-        self.entities = entity_map
+    def __init__(self, terrain: TerrainMap, entities: EntityMap, systems: list[System]):
+        self.terrain = terrain
+        self.entities = entities
         
         # Simulation components
-        self.systems: list["System"] = []
+        self.systems = systems
         
         # Transaction Queues
         self.command_queue: list["BaseCommand"] = []

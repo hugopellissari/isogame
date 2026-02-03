@@ -54,7 +54,7 @@ class MovementSystem(System):
                 ratio = move_distance / distance
                 new_x = current_pos[0] + (dx * ratio)
                 new_y = current_pos[1] + (dy * ratio)
-                entity.position = (new_x, new_y)
+                entity.position = (new_x, new_y, 0)
 
 
 class InteractionSystem(System):

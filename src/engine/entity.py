@@ -1,6 +1,7 @@
 from typing import Generator, Type, TypeVar, cast
 import uuid
 
+from engine.commons import Position
 from pydantic import BaseModel, ConfigDict, Field
 
 from engine.trait import BaseTrait
@@ -19,7 +20,7 @@ class BaseEntity(BaseModel):
     
     id: str = Field(default_factory=lambda: uuid.uuid4().hex) # this is the instane id
     asset: str # this is the identifier of the 'class'
-    position: tuple[float, float]
+    position: Position = (0, 0, 0)
     traits: list[BaseTrait] = Field(default_factory=list)
 
     def as_a(self, trait_type: Type[T]) -> T | NullTrait:

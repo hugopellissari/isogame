@@ -17,5 +17,13 @@ class BasicTerrain(TerrainMap):
 
 
 entity_map = EntityMap()
-entity_map.add(BaseEntity(asset="player", position=(0, 0)))
-simple_game = Game(BasicTerrain.generate(10, 10), entity_map)
+entity_map.add(BaseEntity(asset="player", position=(0, 0, 0)))
+
+simple_game = Game(
+    terrain=BasicTerrain.generate(10, 10), 
+    entities=entity_map, 
+    systems=[],
+)
+
+# simple_game.event_processor.register_handler()
+# simple_game.command_processor.register_handler()

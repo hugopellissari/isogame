@@ -19,7 +19,6 @@ class SceneMapper:
     def __init__(self, renderer: Renderer, asset_library: AssetLibrary):
         self.renderer = renderer
         self.asset_library = asset_library
-        self.visual_instances = {}
 
     def setup(self, game: Game):
         """
@@ -38,18 +37,16 @@ class SceneMapper:
     def render(self, game: Game):
         """
         Takes the current state of the game and renders it.
-
-        TODO: 
-        - Make it efficient so we do not render things that did not change among other otpimizations 
-        - Ensure we can handle dynamic spawns and despawns
         """
+        # TODO
+        # THis is the most naive implementation possible, we myst make sure we only 
+        # render what we didn't render before or what has changed. 
+        # We also must make sure to destroy whatever is not present in the list anymore.
+        # For this, we will probbaly need to keep a different map of the visuals created
         for entity in game.entities.list():
-            self.visual_instances[entity.id] = self.renderer.render_instance(
-                f"vis_{entity.id}", 
-                entity.asset, 
-                entity.position
+            self.renderer.render_instance(
+                entity_id=entity.id, 
+                asset_name=entity.asset,
+                # TODO we must convert logic position to game position
+                position=entity.position
             )
-
-            # 2. UPDATE: Force position sync
-            visual = self.visual_instances[entity.id]
-            visual.position = entity.position
