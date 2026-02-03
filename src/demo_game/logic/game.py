@@ -38,7 +38,9 @@ class BasicTerrain(TerrainMap):
 
 
 entity_map = EntityMap()
-player_entity = BaseEntity(asset="player", position=(0, 0, 0), traits=[MovableTrait(), GroundableTrait()])
+player_entity = BaseEntity(
+    asset="player", position=(0, 0, 0), traits=[MovableTrait(), GroundableTrait()]
+)
 entity_map.add(player_entity)
 
 simple_game = Game(

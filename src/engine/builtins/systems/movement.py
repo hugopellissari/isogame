@@ -45,4 +45,3 @@ class MovementSystem(System):
 
                 # Update Position (Preserve current Y)
                 entity.position = (new_x, entity.position[1], new_z)
-

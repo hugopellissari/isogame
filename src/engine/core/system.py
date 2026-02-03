@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     from engine.core.game import Game
 

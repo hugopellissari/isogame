@@ -13,6 +13,7 @@ class GroundableTrait(BaseTrait):
     """
     Means the entitu won't fly around
     """
+
     pass
 
 

@@ -10,7 +10,6 @@ class BaseEvent(BaseModel):
     pass
 
 
-
 class BaseCommand(BaseModel):
     """
     A request to change the game state or initiate an action.
