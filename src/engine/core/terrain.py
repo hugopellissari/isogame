@@ -14,7 +14,6 @@ class Tile(Generic[TerrainID]):
 
 class TerrainGenerationParams(BaseModel):
     """Configuration for the generator remains a BaseModel for easy serialization."""
-
     pass
 
 
