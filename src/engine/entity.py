@@ -17,8 +17,8 @@ class NullTrait:
 class BaseEntity(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
     
-    id: str = Field(default_factory=lambda: uuid.uuid4().hex)
-    asset: str
+    id: str = Field(default_factory=lambda: uuid.uuid4().hex) # this is the instane id
+    asset: str # this is the identifier of the 'class'
     position: tuple[float, float]
     traits: list[BaseTrait] = Field(default_factory=list)
 
@@ -41,6 +41,10 @@ class EntityMap(BaseModel):
     entities: dict[str, BaseEntity] = Field(default_factory=dict)
     # TODO we don't have an active_ids anymore, so we don't have quite a way to notify
     # the engine what we need to update
+
+    def list(self) -> list[BaseEntity]:
+        # TODO make this a egnerator instead
+        return list(self.entities.values())
 
     def add(self, entity: BaseEntity):
         self.entities[entity.id] = entity

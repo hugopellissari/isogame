@@ -47,10 +47,3 @@ class Game:
         # 3. Reality: Apply the results of the simulation
         self.event_processor.process(self, self.event_queue)
         self.event_queue.clear()
-
-    @classmethod
-    @abstractmethod
-    def setup(cls, width: int, height: int) -> "Game":
-        """
-        Factory method to bootstrap a new game instance.
-        """
