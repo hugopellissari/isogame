@@ -1,14 +1,14 @@
 from abc import abstractmethod
 
-from engine.entity import EntityMap
-from engine.cqrs import BaseCommand, BaseEvent, EventProcessor, CommandProcessor
-from engine.system import System
-from engine.terrain import TerrainMap
+from engine.core.entity import EntityMap
+from engine.core.cqrs import BaseCommand, BaseEvent, EventProcessor, CommandProcessor
+from engine.core.system import System
+from engine.core.terrain import TerrainMap
 
 
 class Game:
     """
-    The central hub of the engine. It manages the lifecycle of
+    The central hub of the engine.core. It manages the lifecycle of
     entities, systems, commands, and events.
     """
 

@@ -1,4 +1,4 @@
-from engine.terrain import TerrainGenerationParams, TerrainMap, TerrainType, Tile
+from engine.core.terrain import TerrainGenerationParams, TerrainMap, TerrainType, Tile
 
 
 # Mock implementation for tests

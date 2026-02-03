@@ -3,12 +3,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from engine.game import Game
-from engine.entity import BaseEntity, EntityMap
-from engine.terrain import TerrainMap
-from engine.system import MovementSystem, InteractionSystem
-from engine.trait import MovableTrait, ActorTrait, ReceiverTrait, InteractionVerb
-from engine.cqrs import BaseCommand, BaseEvent, CommandHandler, EventHandler
+from engine.core.game import Game
+from engine.core.entity import BaseEntity, EntityMap
+from engine.core.terrain import TerrainMap
+from engine.core.system import MovementSystem, InteractionSystem
+from engine.core.trait import MovableTrait, ActorTrait, ReceiverTrait, InteractionVerb
+from engine.core.cqrs import BaseCommand, BaseEvent, CommandHandler, EventHandler
 
 
 class MyVerbs(InteractionVerb):

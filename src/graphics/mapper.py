@@ -1,7 +1,7 @@
 from graphics.meshers.mesh import MeshData
 from graphics.meshers.terrain_mesher import TerrainMesher
 from graphics.renderer import Renderer
-from engine.game import Game
+from engine.core.game import Game
 
 
 class AssetLibrary:

@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from engine.cqrs import (
+from engine.core.cqrs import (
     CommandHandler,
     CommandProcessor,
     EventHandler,

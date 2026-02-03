@@ -10,10 +10,6 @@ class BaseEvent(BaseModel):
     pass
 
 
-# TODO move this elsewhere
-class EntityArrivedEvent(BaseEvent):
-    entity_id: str
-
 
 class BaseCommand(BaseModel):
     """

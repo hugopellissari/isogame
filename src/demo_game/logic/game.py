@@ -1,10 +1,10 @@
-from engine.commons import Position
-from engine.system import MovementSystem, TerrainSnappingSystem
-from engine.terrain import TerrainMap, Tile
-from engine.game import Game
-from engine.entity import EntityMap, BaseEntity
-from engine.trait import MovableTrait, GroundableTrait
-from engine.cqrs import BaseCommand
+from engine.core.commons import Position
+from engine.core.system import MovementSystem, TerrainSnappingSystem
+from engine.core.terrain import TerrainMap, Tile
+from engine.core.game import Game
+from engine.core.entity import EntityMap, BaseEntity
+from engine.core.trait import MovableTrait, GroundableTrait
+from engine.core.cqrs import BaseCommand
 
 
 class BasicTerrain(TerrainMap):

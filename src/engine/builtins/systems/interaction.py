@@ -1,70 +1,16 @@
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Type
 from math import sqrt
-
-from engine.cqrs import EntityArrivedEvent, BaseEvent
-from engine.entity import BaseEntity
-from engine.trait import ActorTrait, MovableTrait, ReceiverTrait, GroundableTrait
-
-if TYPE_CHECKING:
-    from engine.game import Game
-
-# Used to prevent floating point "micro-misses"
-EPSILON = 1e-6
-
-
-class System:
-    @abstractmethod
-    def update(self, game: "Game", dt: float): ...
-
-
-class MovementSystem(System):
-    def update(self, game: "Game", dt: float):
-        for entity, movable in game.entities.yield_entities_with_trait(MovableTrait):
-            if not movable.destination or not movable.is_moving:
-                continue
-
-            if not movable.path:
-                movable.set_path([movable.destination])
-
-            # Peek target
-            target_pos = movable.path[-1]
-
-            # --- COORDINATES (Pure 2D X/Z) ---
-            current_x, _, current_z = entity.position  # Ignore Y completely!
-            target_x, target_z = target_pos[0], target_pos[1]
-
-            dx = target_x - current_x
-            dz = target_z - current_z
-
-            distance = sqrt(dx**2 + dz**2)
-            move_distance = movable.speed * dt
-
-            # CHECK ARRIVAL
-            if distance <= move_distance + EPSILON:
-                # 1. Snap Logic X/Z only (Let SnappingSystem handle Y later)
-                # We keep the current Y for now, or set it to 0, it doesn't matter
-                # because TerrainSnappingSystem runs next.
-                entity.position = (target_x, entity.position[1], target_z)
-
-                movable.path.pop()
-                if not movable.path:
-                    movable.stop_movement()
-                    game.enqueue_event(EntityArrivedEvent(entity_id=entity.id))
-            else:
-                # MOVE
-                ratio = move_distance / distance
-                new_x = current_x + (dx * ratio)
-                new_z = current_z + (dz * ratio)
-
-                # Update Position (Preserve current Y)
-                entity.position = (new_x, entity.position[1], new_z)
+from engine.builtins.traits import ActorTrait, MovableTrait, ReceiverTrait
+from engine.core.cqrs import BaseEvent
+from engine.core.entity import BaseEntity
+from engine.core.game import Game
+from engine.core.system import EPSILON, System
 
 
 class InteractionSystem(System):
     @property
     @abstractmethod
-    def actor_trait_subclass(self) -> Type[ActorTrait]: ...
+    def actor_trait_subclass(self) -> type[ActorTrait]: ...
 
     @abstractmethod
     def handle_action(
@@ -143,20 +89,3 @@ class InteractionSystem(System):
 
         distance = sqrt(dx**2 + dz**2)
         return distance <= (interaction_range + EPSILON)
-
-
-class TerrainSnappingSystem(System):
-    def update(self, game: "Game", dt: float):
-        for entity, _ in game.entities.yield_entities_with_trait(GroundableTrait):
-
-            # 1. Get current 2D position (Unity Standard: X and Z)
-            current_x, current_y, current_z = entity.position
-
-            # 2. Calculate the correct Height (Y)
-            # The system asks the Terrain Map logic for the height at this X, Z
-            target_y = game.terrain.get_height(current_x, current_z)
-
-            # 3. Apply Snapping (Instant Gravity)
-            # Optimization: Only write if the difference is significant
-            if abs(current_y - target_y) > EPSILON:
-                entity.position = (current_x, target_y, current_z)

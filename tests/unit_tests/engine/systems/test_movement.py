@@ -2,10 +2,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from engine.entity import BaseEntity, EntityMap
-from engine.game import Game
-from engine.system import MovementSystem
-from engine.trait import MovableTrait
+from engine.core.entity import BaseEntity, EntityMap
+from engine.core.game import Game
+from engine.core.system import MovementSystem
+from engine.core.trait import MovableTrait
 
 
 class EntityArrivedEvent:  # Mocking the event for the test

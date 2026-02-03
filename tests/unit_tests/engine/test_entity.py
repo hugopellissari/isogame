@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
-from engine.entity import BaseEntity, EntityMap
-from engine.trait import ActorTrait, BaseTrait, InteractionVerb, MovableTrait
+from engine.core.entity import BaseEntity, EntityMap
+from engine.core.trait import ActorTrait, BaseTrait, InteractionVerb, MovableTrait
 
 # --- Mock Implementation for Testing ---
 

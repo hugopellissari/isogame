@@ -1,4 +1,4 @@
-from engine.terrain import TerrainMap
+from engine.core.terrain import TerrainMap
 from graphics.meshers.mesh import MeshData
 
 

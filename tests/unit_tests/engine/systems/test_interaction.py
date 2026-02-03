@@ -1,10 +1,10 @@
 from typing import ClassVar
 from unittest.mock import MagicMock
-from engine.entity import BaseEntity, EntityMap
-from engine.game import Game
-from engine.cqrs import BaseEvent
-from engine.system import InteractionSystem
-from engine.trait import ActorTrait, ReceiverTrait, InteractionVerb
+from engine.core.entity import BaseEntity, EntityMap
+from engine.core.game import Game
+from engine.core.cqrs import BaseEvent
+from engine.core.system import InteractionSystem
+from engine.core.trait import ActorTrait, ReceiverTrait, InteractionVerb
 
 
 class Verb(InteractionVerb):

@@ -1,10 +1,10 @@
 from typing import Generator, Type, TypeVar, cast
 import uuid
 
-from engine.commons import Position
+from engine.core.commons import Position
 from pydantic import BaseModel, ConfigDict, Field
 
-from engine.trait import BaseTrait
+from engine.core.trait import BaseTrait
 
 T = TypeVar("T", bound=BaseTrait)
 

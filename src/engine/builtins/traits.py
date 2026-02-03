@@ -1,14 +1,11 @@
 from enum import Enum
 from typing import ClassVar
-from engine.commons import Position
-from pydantic import BaseModel, Field
+from engine.core.commons import Position
+from engine.core.trait import BaseTrait
+from pydantic import Field
 
 
 class InteractionVerb(Enum):
-    pass
-
-
-class BaseTrait(BaseModel):
     pass
 
 
