@@ -1,10 +1,6 @@
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Type
-from math import sqrt
+from typing import TYPE_CHECKING
 
-from engine.core.cqrs import EntityArrivedEvent, BaseEvent
-from engine.core.entity import BaseEntity
-from engine.core.trait import ActorTrait, MovableTrait, ReceiverTrait, GroundableTrait
 
 if TYPE_CHECKING:
     from engine.core.game import Game

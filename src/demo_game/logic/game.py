@@ -1,9 +1,10 @@
 from engine.core.commons import Position
-from engine.core.system import MovementSystem, TerrainSnappingSystem
+from engine.builtins.systems.movement import MovementSystem
+from engine.builtins.systems.ground_snapping import TerrainSnappingSystem
 from engine.core.terrain import TerrainMap, Tile
 from engine.core.game import Game
 from engine.core.entity import EntityMap, BaseEntity
-from engine.core.trait import MovableTrait, GroundableTrait
+from engine.builtins.traits import MovableTrait, GroundableTrait
 from engine.core.cqrs import BaseCommand
 
 
